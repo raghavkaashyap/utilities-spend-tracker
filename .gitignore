@@ -1,0 +1,52 @@
+# --- Maven / Java ---
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+
+.mvn/wrapper/maven-wrapper.jar
+
+# --- IDEs ---
+# IntelliJ
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# STS / Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+
+# VS Code
+.vscode/
+
+.DS_Store
+Thumbs.db
+
+# --- Logs ---
+*.log
+
+# --- Local config / secrets ---
+backend/src/main/resources/application-dev.properties
+.env
+*.env
+
+HELP.md
