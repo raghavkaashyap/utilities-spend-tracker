@@ -1,4 +1,4 @@
-package com.ust.backend.repo;
+package com.ust.backend.Bill;
 
 public class BillRepository {
 }
