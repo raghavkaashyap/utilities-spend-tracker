@@ -18,4 +18,8 @@ public class BillService {
     public List<Bill> getBills(){
         return billRepository.findAll();
     }
+
+    public Bill getBillById(long id){
+        return billRepository.findById(id).orElse(null);
+    }
 }
