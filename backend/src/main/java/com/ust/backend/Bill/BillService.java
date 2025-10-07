@@ -20,6 +20,9 @@ public class BillService {
     }
 
     public Bill getBillById(long id){
-        return billRepository.findById(id).orElse(null);
+        if (billRepository.existsById(id)){
+            return billRepository.findById(id);
+        }
+        return null;
     }
 }
