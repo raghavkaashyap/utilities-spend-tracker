@@ -19,10 +19,16 @@ public class BillService {
         return billRepository.findAll();
     }
 
-    public Bill getBillById(long id){
-//        if (billRepository.existsById(id)){
-//            return billRepository.findById(id);
-//        }
-        return null;
+    public List<Object[]> getSumOfAmountByUtilityType(){
+        return billRepository.getSumOfAmountByUtilityType();
     }
+
+    public List<Object[]> getSumOfAmountByStatus(){
+        return billRepository.getSumOfAmountByStatus();
+    }
+
+    public List<Object[]> getMonthlyTotals(){
+        return billRepository.getMonthlyTotals();
+    }
+
 }
