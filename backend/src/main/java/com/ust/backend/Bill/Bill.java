@@ -1,21 +1,27 @@
 package com.ust.backend.Bill;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
 @Table(name = "bills")
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Bill {
 
     @Id
-    long id;
-    UtilityType utilityType;
-    LocalDate serviceMonth;
-    LocalDate dueDate;
-    double amount;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+
+    @Enumerated(EnumType.STRING)
+    private UtilityType utilityType;
+
+    private LocalDate serviceMonth;
+    private LocalDate dueDate;
+    BigDecimal amount;
+    @Enumerated(EnumType.STRING)
     BillStatus status;
     String notes;
 
