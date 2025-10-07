@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "bills")
@@ -20,9 +21,23 @@ public class Bill {
 
     private LocalDate serviceMonth;
     private LocalDate dueDate;
-    BigDecimal amount;
+    private BigDecimal amount;
+
     @Enumerated(EnumType.STRING)
     BillStatus status;
     String notes;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    void onCreate(){
+        createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    void onUpdate(){
+        updatedAt = LocalDateTime.now();
+    }
 
 }
