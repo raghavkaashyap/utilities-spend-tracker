@@ -31,4 +31,12 @@ public class BillService {
         return billRepository.getMonthlyTotals();
     }
 
+    public Bill saveBill(Bill bill){
+        return billRepository.save(bill);
+    }
+
+    public void deleteBill(Bill bill){
+        billRepository.delete(bill);
+    }
+
 }

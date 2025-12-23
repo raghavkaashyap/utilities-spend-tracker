@@ -1,8 +1,6 @@
 package com.ust.backend.bill;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -34,5 +32,18 @@ public class BillController {
     @GetMapping("/summary/monthly")
     public List<Object[]> getMonthlyTotals() {
         return billService.getMonthlyTotals();
+    }
+
+    @PostMapping
+    public Bill createBill(@RequestBody Bill bill) {
+        return billService.saveBill(bill);
+    }
+
+    @DeleteMapping("/all")
+    public void deleteAllBills() {
+        List<Bill> bills = billService.getBills();
+        for (Bill bill : bills) {
+            billService.deleteBill(bill);
+        }
     }
 }
