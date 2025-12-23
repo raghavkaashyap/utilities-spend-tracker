@@ -30,7 +30,6 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder, Environment env) {
-        // Load credentials from application-*.properties (e.g., application-dev.properties)
         String username = env.getProperty("ust.app.user");
         String rawPassword = env.getProperty("ust.app.password");
         if (username == null || username.isBlank() || rawPassword == null || rawPassword.isBlank()) {
