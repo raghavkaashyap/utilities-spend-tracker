@@ -1,6 +1,8 @@
 package com.ust.backend.bill;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -15,8 +17,27 @@ public class BillController {
     }
 
     @GetMapping
-    public List<Bill> getAllBills() {
-        return billService.getBills();
+    public List<Bill> getBills(@RequestParam(required = false) String month,
+                               @RequestParam(required = false) String status,
+                               @RequestParam(required = false) String utilityType) {
+        BillStatus statusEnum = null;
+        if (status != null) {
+            try {
+                statusEnum = BillStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException ex) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid status value: " + status);
+            }
+        }
+        UtilityType utilityEnum = null;
+        if (utilityType != null) {
+            try {
+                utilityEnum = UtilityType.valueOf(utilityType.toUpperCase());
+            } catch (IllegalArgumentException ex) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid utilityType value: " + utilityType);
+            }
+        }
+        // Service handles nulls and parses month
+        return billService.filterBills(month, statusEnum, utilityEnum);
     }
 
     @GetMapping("/summary/by-utility")
