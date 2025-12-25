@@ -3,6 +3,7 @@ package com.ust.backend.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -29,12 +30,10 @@ public class SecurityConfig {
     }
 
     @Bean
+    @ConditionalOnProperty(name = {"ust.app.user", "ust.app.password"})
     public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder, Environment env) {
         String username = env.getProperty("ust.app.user");
         String rawPassword = env.getProperty("ust.app.password");
-        if (username == null || username.isBlank() || rawPassword == null || rawPassword.isBlank()) {
-            throw new IllegalStateException("ust.app.user and ust.app.password must be set in your application-dev.properties or environment");
-        }
         UserDetails user = User
                 .withUsername(username)
                 .password(passwordEncoder.encode(rawPassword))
