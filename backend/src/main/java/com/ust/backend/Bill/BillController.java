@@ -40,6 +40,11 @@ public class BillController {
         return billService.filterBills(month, statusEnum, utilityEnum);
     }
 
+    @GetMapping("/due-next-month")
+    public List<Bill> getBillsDueInNextMonth() {
+        return billService.getBillsDueInTheNextMonth();
+    }
+
     @GetMapping("/summary/by-utility")
     public List<Object[]> getSumByUtility() {
         return billService.getSumOfAmountByUtilityType();
