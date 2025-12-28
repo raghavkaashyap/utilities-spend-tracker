@@ -2,10 +2,12 @@ package com.ust.backend.bill;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -19,7 +21,7 @@ public class BillController {
     }
 
     @GetMapping
-    public List<Bill> getBills(@RequestParam(required = false) String month,
+    public ResponseEntity<List<Bill>> getBills(@RequestParam(required = false) String month,
                                @RequestParam(required = false) String status,
                                @RequestParam(required = false) String utilityType) {
         BillStatus statusEnum = null;
@@ -39,69 +41,73 @@ public class BillController {
             }
         }
         // Service handles nulls and parses month
-        return billService.filterBills(month, statusEnum, utilityEnum);
+        return ResponseEntity.ok(billService.filterBills(month, statusEnum, utilityEnum));
     }
 
     @GetMapping("/{id}")
-    public Bill getBillById(@PathVariable long id) {
-        return billService.getBillById(id);
+    public ResponseEntity<Bill> getBillById(@PathVariable long id) {
+        return ResponseEntity.ok(billService.getBillById(id));
     }
 
     @PutMapping("/{id}")
-    public Bill updateBill(@PathVariable long id, @RequestBody Bill bill) {
-        return billService.updateBill(id, bill);
+    public ResponseEntity<Bill> updateBill(@PathVariable long id, @RequestBody Bill bill) {
+        return ResponseEntity.ok(billService.updateBill(id, bill));
     }
 
     @PatchMapping("/{id}/status")
-    public Bill updateBillStatus(@PathVariable long id, @RequestParam String status) {
+    public ResponseEntity<Bill> updateBillStatus(@PathVariable long id, @RequestParam String status) {
         try {
             BillStatus statusEnum = BillStatus.valueOf(status.toUpperCase());
-            return billService.updateStatus(id, statusEnum);
+            return ResponseEntity.ok(billService.updateStatus(id, statusEnum));
         } catch (IllegalArgumentException ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid status value: " + status);
         }
     }
 
     @DeleteMapping("/{id}")
-    public void deleteBillById(@PathVariable long id) {
+    public ResponseEntity<Void> deleteBillById(@PathVariable long id) {
         billService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/due-next-month")
-    public List<Bill> getBillsDueInNextMonth() {
-        return billService.getBillsDueInTheNextMonth();
+    public ResponseEntity<List<Bill>> getBillsDueInNextMonth() {
+        return ResponseEntity.ok(billService.getBillsDueInTheNextMonth());
     }
 
     @GetMapping("/summary/by-utility")
-    public List<Object[]> getSumByUtility() {
-        return billService.getSumOfAmountByUtilityType();
+    public ResponseEntity<List<Object[]>> getSumByUtility() {
+        return ResponseEntity.ok(billService.getSumOfAmountByUtilityType());
     }
 
     @GetMapping("/summary/by-status")
-    public List<Object[]> getSumByStatus() {
-        return billService.getSumOfAmountByStatus();
+    public ResponseEntity<List<Object[]>> getSumByStatus() {
+        return ResponseEntity.ok(billService.getSumOfAmountByStatus());
     }
 
     @GetMapping("/summary/monthly")
-    public List<Object[]> getMonthlyTotals() {
-        return billService.getMonthlyTotals();
+    public ResponseEntity<List<Object[]>> getMonthlyTotals() {
+        return ResponseEntity.ok(billService.getMonthlyTotals());
     }
 
     @PostMapping
-    public Bill createBill(@RequestBody Bill bill) {
-        return billService.saveBill(bill);
+    public ResponseEntity<Bill> createBill(@RequestBody Bill bill) {
+        Bill saved = billService.saveBill(bill);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @DeleteMapping("/all")
-    public void deleteAllBills() {
+    public ResponseEntity<Void> deleteAllBills() {
         billService.deleteAll();
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping(path = "/upload-pdf", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Bill uploadPdf(@RequestPart("file") MultipartFile file) {
+    public ResponseEntity<Bill> uploadPdf(@RequestPart("file") MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No file uploaded");
         }
-        return billService.createBillFromPdf(file);
+        Bill saved = billService.createBillFromPdf(file);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 }
