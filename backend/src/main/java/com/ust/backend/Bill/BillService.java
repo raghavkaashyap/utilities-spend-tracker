@@ -23,29 +23,10 @@ public class BillService {
         return billRepository.findAll();
     }
 
-    // Deprecated redundant pageable variants; use filterBills instead.
-    @Deprecated
-    public List<Bill> getBillsByMonth(String month){
-        YearMonth ym = YearMonth.parse(month);
-        LocalDate start = ym.atDay(1);
-        LocalDate end = ym.plusMonths(1).atDay(1);
-        return billRepository.findAllByServiceMonthBetween(start, end, null).getContent();
-    }
-
     public List<Bill> getBillsDueInTheNextMonth(){
         LocalDate today = LocalDate.now();
         LocalDate nextMonth = today.plusMonths(1);
-        return billRepository.findAllByDueDateBetween(today, nextMonth, null).getContent();
-    }
-
-    @Deprecated
-    public List<Bill> getBillByStatus(BillStatus status){
-        return billRepository.findAllByStatus(status, null).getContent();
-    }
-
-    @Deprecated
-    public List<Bill> getBillByUtilityType(UtilityType utilityType){
-        return billRepository.findAllByUtilityType(utilityType, null).getContent();
+        return billRepository.findAllByDueDateBetween(today, nextMonth);
     }
 
     public List<Bill> filterBills(String month, BillStatus status, UtilityType utilityType){

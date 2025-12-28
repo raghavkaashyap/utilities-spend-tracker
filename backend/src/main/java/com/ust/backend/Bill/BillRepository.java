@@ -1,7 +1,5 @@
 package com.ust.backend.bill;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,11 +11,8 @@ import java.util.List;
 @Repository
 public interface BillRepository extends JpaRepository<Bill, Long> {
 
-    Page<Bill> findAllByUtilityType(UtilityType utilityType, Pageable pageable);
-    Page<Bill> findAllByStatus(BillStatus status, Pageable pageable);
-    Page<Bill> findAllByServiceMonthBetween(LocalDate start, LocalDate end, Pageable pageable);
-    Page<Bill> findAllByDueDateBetween(LocalDate start, LocalDate end, Pageable pageable);
-    Page<Bill> findAllByServiceMonth(LocalDate month, Pageable pageable);
+    // Non-pageable convenience method used by service
+    List<Bill> findAllByDueDateBetween(LocalDate start, LocalDate end);
 
     @Query("SELECT b.utilityType, SUM(b.amount) from Bill b group by b.utilityType ")
     List<Object[]> getSumOfAmountByUtilityType();
