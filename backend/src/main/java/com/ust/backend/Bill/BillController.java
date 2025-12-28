@@ -40,6 +40,31 @@ public class BillController {
         return billService.filterBills(month, statusEnum, utilityEnum);
     }
 
+    @GetMapping("/{id}")
+    public Bill getBillById(@PathVariable long id) {
+        return billService.getBillById(id);
+    }
+
+    @PutMapping("/{id}")
+    public Bill updateBill(@PathVariable long id, @RequestBody Bill bill) {
+        return billService.updateBill(id, bill);
+    }
+
+    @PatchMapping("/{id}/status")
+    public Bill updateBillStatus(@PathVariable long id, @RequestParam String status) {
+        try {
+            BillStatus statusEnum = BillStatus.valueOf(status.toUpperCase());
+            return billService.updateStatus(id, statusEnum);
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid status value: " + status);
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteBillById(@PathVariable long id) {
+        billService.deleteById(id);
+    }
+
     @GetMapping("/due-next-month")
     public List<Bill> getBillsDueInNextMonth() {
         return billService.getBillsDueInTheNextMonth();
@@ -67,9 +92,6 @@ public class BillController {
 
     @DeleteMapping("/all")
     public void deleteAllBills() {
-        List<Bill> bills = billService.getBills();
-        for (Bill bill : bills) {
-            billService.deleteBill(bill);
-        }
+        billService.deleteAll();
     }
 }
