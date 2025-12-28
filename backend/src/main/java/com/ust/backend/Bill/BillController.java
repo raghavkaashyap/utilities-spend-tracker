@@ -1,7 +1,9 @@
 package com.ust.backend.bill;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -93,5 +95,13 @@ public class BillController {
     @DeleteMapping("/all")
     public void deleteAllBills() {
         billService.deleteAll();
+    }
+
+    @PostMapping(path = "/upload-pdf", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Bill uploadPdf(@RequestPart("file") MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No file uploaded");
+        }
+        return billService.createBillFromPdf(file);
     }
 }

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -13,10 +14,12 @@ import java.util.List;
 public class BillService {
 
     private final BillRepository billRepository;
+    private final PdfParseService pdfParseService;
 
     @Autowired
-    public BillService(BillRepository billRepository) {
+    public BillService(BillRepository billRepository, PdfParseService pdfParseService) {
         this.billRepository = billRepository;
+        this.pdfParseService = pdfParseService;
     }
 
     public List<Bill> getBills(){
@@ -92,6 +95,19 @@ public class BillService {
 
     public void deleteBill(Bill bill){
         billRepository.delete(bill);
+    }
+
+    public Bill createBillFromPdf(MultipartFile file) {
+        try {
+            String text = pdfParseService.extractText(file);
+            Bill bill = Bill.builder()
+                    .notes(text)
+                    .status(BillStatus.UNPAID)
+                    .build();
+            return billRepository.save(bill);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to parse PDF: " + e.getMessage());
+        }
     }
 
 }
