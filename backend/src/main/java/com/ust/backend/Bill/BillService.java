@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -36,9 +37,13 @@ public class BillService {
         LocalDate start = null;
         LocalDate end = null;
         if (month != null && !month.isBlank()) {
-            YearMonth ym = YearMonth.parse(month); // expects YYYY-MM
-            start = ym.atDay(1);
-            end = ym.plusMonths(1).atDay(1);
+            try {
+                YearMonth ym = YearMonth.parse(month); // expects YYYY-MM
+                start = ym.atDay(1);
+                end = ym.plusMonths(1).atDay(1);
+            } catch (java.time.format.DateTimeParseException e) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid month format. Use YYYY-MM");
+            }
         }
         return billRepository.findByOptionalFilters(utilityType, status, start, end);
     }
@@ -55,6 +60,7 @@ public class BillService {
         return billRepository.getMonthlyTotals();
     }
 
+    @Transactional
     public Bill saveBill(Bill bill){
         return billRepository.save(bill);
     }
@@ -64,6 +70,7 @@ public class BillService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Bill not found: " + id));
     }
 
+    @Transactional
     public Bill updateBill(long id, Bill updated){
         Bill existing = getBillById(id);
         // Update mutable fields
@@ -76,12 +83,14 @@ public class BillService {
         return billRepository.save(existing);
     }
 
+    @Transactional
     public Bill updateStatus(long id, BillStatus status){
         Bill existing = getBillById(id);
         existing.setStatus(status);
         return billRepository.save(existing);
     }
 
+    @Transactional
     public void deleteById(long id){
         if (!billRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Bill not found: " + id);
@@ -89,6 +98,7 @@ public class BillService {
         billRepository.deleteById(id);
     }
 
+    @Transactional
     public void deleteAll(){
         billRepository.deleteAll();
     }
@@ -98,6 +108,13 @@ public class BillService {
     }
 
     public Bill createBillFromPdf(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No file uploaded");
+        }
+        String contentType = file.getContentType();
+        if (!org.springframework.http.MediaType.APPLICATION_PDF_VALUE.equalsIgnoreCase(contentType)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only PDF files are supported");
+        }
         try {
             String text = pdfParseService.extractText(file);
             Bill bill = Bill.builder()

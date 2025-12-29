@@ -9,6 +9,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/bills")
 public class BillController {
@@ -49,7 +51,7 @@ public class BillController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Bill> updateBill(@PathVariable long id, @RequestBody Bill bill) {
+    public ResponseEntity<Bill> updateBill(@PathVariable long id, @Valid @RequestBody Bill bill) {
         return ResponseEntity.ok(billService.updateBill(id, bill));
     }
 
@@ -90,7 +92,7 @@ public class BillController {
     }
 
     @PostMapping
-    public ResponseEntity<Bill> createBill(@RequestBody Bill bill) {
+    public ResponseEntity<Bill> createBill(@Valid @RequestBody Bill bill) {
         Bill saved = billService.saveBill(bill);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
