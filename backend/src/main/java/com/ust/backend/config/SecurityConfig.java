@@ -9,8 +9,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -18,6 +20,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -28,17 +31,26 @@ import java.util.List;
 @PropertySource(value = "classpath:application-dev.properties", ignoreResourceNotFound = true)
 public class SecurityConfig {
 
+    private final com.ust.backend.auth.JwtAuthFilter jwtAuthFilter;
+
+    public SecurityConfig(com.ust.backend.auth.JwtAuthFilter jwtAuthFilter) {
+        this.jwtAuthFilter = jwtAuthFilter;
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // allow CORS preflight
-                        .requestMatchers("/", "/health").permitAll()
+                        .requestMatchers("/", "/health", "/auth/login").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/user/**", "/api/**").hasAnyRole("USER", "ADMIN")
                         .anyRequest().authenticated()
                 )
-                .httpBasic(Customizer.withDefaults());
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
@@ -55,7 +67,7 @@ public class SecurityConfig {
         return source;
     }
 
-    // Dev-only basic auth user loaded strictly from application-dev.properties (not OS env)
+    // Dev-only in-memory users loaded from application-dev.properties
     @Bean
     @Profile("dev")
     @ConditionalOnProperty(name = {"ust.app.user", "ust.app.password"})
@@ -73,6 +85,17 @@ public class SecurityConfig {
                     .password(passwordEncoder.encode(rawPassword))
                     .roles("USER")
                     .build();
+
+            String adminUsername = props.getProperty("ust.app.admin.user");
+            String adminRawPassword = props.getProperty("ust.app.admin.password");
+            if (adminUsername != null && adminRawPassword != null) {
+                UserDetails admin = User
+                        .withUsername(adminUsername)
+                        .password(passwordEncoder.encode(adminRawPassword))
+                        .roles("ADMIN")
+                        .build();
+                return new InMemoryUserDetailsManager(user, admin);
+            }
             return new InMemoryUserDetailsManager(user);
         } catch (Exception ex) {
             throw new IllegalStateException("Failed to load dev credentials from application-dev.properties", ex);
@@ -82,5 +105,10 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public org.springframework.security.authentication.AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 }
