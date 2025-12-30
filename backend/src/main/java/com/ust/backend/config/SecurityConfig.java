@@ -67,41 +67,6 @@ public class SecurityConfig {
         return source;
     }
 
-    // Dev-only in-memory users loaded from application-dev.properties
-    @Bean
-    @Profile("dev")
-    @ConditionalOnProperty(name = {"ust.app.user", "ust.app.password"})
-    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-        try {
-            java.util.Properties props = new java.util.Properties();
-            org.springframework.core.io.ClassPathResource res = new org.springframework.core.io.ClassPathResource("application-dev.properties");
-            try (java.io.InputStream is = res.getInputStream()) {
-                props.load(is);
-            }
-            String username = props.getProperty("ust.app.user");
-            String rawPassword = props.getProperty("ust.app.password");
-            UserDetails user = User
-                    .withUsername(username)
-                    .password(passwordEncoder.encode(rawPassword))
-                    .roles("USER")
-                    .build();
-
-            String adminUsername = props.getProperty("ust.app.admin.user");
-            String adminRawPassword = props.getProperty("ust.app.admin.password");
-            if (adminUsername != null && adminRawPassword != null) {
-                UserDetails admin = User
-                        .withUsername(adminUsername)
-                        .password(passwordEncoder.encode(adminRawPassword))
-                        .roles("ADMIN")
-                        .build();
-                return new InMemoryUserDetailsManager(user, admin);
-            }
-            return new InMemoryUserDetailsManager(user);
-        } catch (Exception ex) {
-            throw new IllegalStateException("Failed to load dev credentials from application-dev.properties", ex);
-        }
-    }
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
