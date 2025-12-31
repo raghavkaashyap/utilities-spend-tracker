@@ -16,11 +16,13 @@ public class BillService {
 
     private final BillRepository billRepository;
     private final PdfParseService pdfParseService;
+    private final BillParser billParser;
 
     @Autowired
-    public BillService(BillRepository billRepository, PdfParseService pdfParseService) {
+    public BillService(BillRepository billRepository, PdfParseService pdfParseService, BillParser billParser) {
         this.billRepository = billRepository;
         this.pdfParseService = pdfParseService;
+        this.billParser = billParser;
     }
 
     public List<Bill> getBills(){
@@ -117,10 +119,17 @@ public class BillService {
         }
         try {
             String text = pdfParseService.extractText(file);
-            Bill bill = Bill.builder()
+            ParsedBill parsed = billParser.parse(text, file.getOriginalFilename());
+            Bill.BillBuilder builder = Bill.builder()
                     .notes(text)
-                    .status(BillStatus.UNPAID)
-                    .build();
+                    .status(BillStatus.UNPAID);
+            if (parsed != null) {
+                if (parsed.getUtilityType() != null) builder.utilityType(parsed.getUtilityType());
+                if (parsed.getAmount() != null) builder.amount(parsed.getAmount());
+                if (parsed.getDueDate() != null) builder.dueDate(parsed.getDueDate());
+                if (parsed.getServiceMonth() != null) builder.serviceMonth(parsed.getServiceMonth());
+            }
+            Bill bill = builder.build();
             return billRepository.save(bill);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to parse PDF: " + e.getMessage());
