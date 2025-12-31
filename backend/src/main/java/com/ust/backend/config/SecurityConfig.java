@@ -2,23 +2,16 @@ package com.ust.backend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -65,41 +58,6 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
-    }
-
-    // Dev-only in-memory users loaded from application-dev.properties
-    @Bean
-    @Profile("dev")
-    @ConditionalOnProperty(name = {"ust.app.user", "ust.app.password"})
-    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-        try {
-            java.util.Properties props = new java.util.Properties();
-            org.springframework.core.io.ClassPathResource res = new org.springframework.core.io.ClassPathResource("application-dev.properties");
-            try (java.io.InputStream is = res.getInputStream()) {
-                props.load(is);
-            }
-            String username = props.getProperty("ust.app.user");
-            String rawPassword = props.getProperty("ust.app.password");
-            UserDetails user = User
-                    .withUsername(username)
-                    .password(passwordEncoder.encode(rawPassword))
-                    .roles("USER")
-                    .build();
-
-            String adminUsername = props.getProperty("ust.app.admin.user");
-            String adminRawPassword = props.getProperty("ust.app.admin.password");
-            if (adminUsername != null && adminRawPassword != null) {
-                UserDetails admin = User
-                        .withUsername(adminUsername)
-                        .password(passwordEncoder.encode(adminRawPassword))
-                        .roles("ADMIN")
-                        .build();
-                return new InMemoryUserDetailsManager(user, admin);
-            }
-            return new InMemoryUserDetailsManager(user);
-        } catch (Exception ex) {
-            throw new IllegalStateException("Failed to load dev credentials from application-dev.properties", ex);
-        }
     }
 
     @Bean
