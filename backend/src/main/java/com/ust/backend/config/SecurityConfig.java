@@ -1,5 +1,6 @@
 package com.ust.backend.config;
 
+import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -21,7 +22,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 @Configuration
-@PropertySource(value = "classpath:application-dev.properties", ignoreResourceNotFound = true)
 public class SecurityConfig {
 
     private final com.ust.backend.auth.JwtAuthFilter jwtAuthFilter;
@@ -37,6 +37,8 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.FORWARD).permitAll()
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // allow CORS preflight
                         .requestMatchers("/", "/health", "/auth/login").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")

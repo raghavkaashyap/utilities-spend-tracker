@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 public class DefaultBillParser implements BillParser {
 
     // Currency like $123.45 or 1,234.56 or 123.45
-    private static final Pattern MONEY_PATTERN = Pattern.compile("(?i)(total\\s*(amount)?\\s*(due|payment|balance)[^\\n\\r:$]*[:$]?\\s*([$])?\\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\\\\.[0-9]{2})?|[0-9]+\\\\.[0-9]{2}))|([$])\\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\\\\.[0-9]{2})?)");
+    private static final Pattern MONEY_PATTERN = Pattern.compile("(?i)(total\\s*(amount)?\\s*(due|payment|balance)[^\\n\\r:$]*[:$]?\\s*([$])?\\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\\.[0-9]{2})?|[0-9]+\\.[0-9]{2}))|([$])\\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\\.[0-9]{2})?)");
 
     // Due date hints
     private static final Pattern DUE_DATE_LINE = Pattern.compile("(?i)(due\\s*date|payment\\s*due)[^\\n\\r]*");
@@ -79,9 +79,9 @@ public class DefaultBillParser implements BillParser {
         BigDecimal best = null;
         while (m.find()) {
             String num = null;
-            // groups 5 or 8 depending on which branch matched
+            // groups 5 or 7 depending on which branch matched
             if (m.group(5) != null) num = m.group(5);
-            else if (m.group(8) != null) num = m.group(8);
+            else if (m.group(7) != null) num = m.group(7);
             if (num == null) continue;
             num = num.replace(",", "");
             try {

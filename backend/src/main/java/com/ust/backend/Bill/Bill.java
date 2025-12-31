@@ -7,48 +7,52 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotNull;
-
 @Entity
 @Table(name = "bills")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Bill {
+
+    private static final int NOTES_MAX = 60_000;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     @Enumerated(EnumType.STRING)
-    @NotNull(message = "utilityType is required")
     private UtilityType utilityType;
 
-    @NotNull(message = "serviceMonth is required")
     private LocalDate serviceMonth;
-
-    @NotNull(message = "dueDate is required")
     private LocalDate dueDate;
-
-    @NotNull(message = "amount is required")
-    @DecimalMin(value = "0.0", inclusive = true, message = "amount must be >= 0")
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
-    @NotNull(message = "status is required")
     BillStatus status;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
     String notes;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    public void setNotes(String notes) {
+        if (notes != null && notes.length() > NOTES_MAX) {
+            this.notes = notes.substring(0, NOTES_MAX);
+        } else {
+            this.notes = notes;
+        }
+    }
+
     @PrePersist
     void onCreate(){
         createdAt = LocalDateTime.now();
+        setNotes(this.notes);
     }
 
     @PreUpdate
     void onUpdate(){
         updatedAt = LocalDateTime.now();
+        setNotes(this.notes);
     }
 
 }
