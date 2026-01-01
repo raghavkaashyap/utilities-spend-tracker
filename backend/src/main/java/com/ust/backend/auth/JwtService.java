@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @Service
 public class JwtService {
 
-    @Value("${ust.jwt.secret:change-this-dev-secret-change-this-dev-secret}")
+    @Value("${ust.jwt.secret}")
     private String secret;
 
     @Value("${ust.jwt.expiration-seconds:3600}")
@@ -32,11 +32,7 @@ public class JwtService {
         // Ensure at least 32 bytes for HS256
         byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
         if (bytes.length < 32) {
-            // pad to 32 bytes if short (dev-safety)
-            byte[] padded = new byte[32];
-            System.arraycopy(bytes, 0, padded, 0, Math.min(bytes.length, 32));
-            for (int i = bytes.length; i < 32; i++) padded[i] = (byte) i;
-            bytes = padded;
+            throw new IllegalStateException("JWT Secret is too weak! Must be at least 32 bytes long for HS256 security.");
         }
         this.key = Keys.hmacShaKeyFor(bytes);
     }
