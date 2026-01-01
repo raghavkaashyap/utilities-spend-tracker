@@ -56,10 +56,14 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token, UserDetails user) {
-        Claims claims = parseAllClaims(token);
-        String username = claims.getSubject();
-        Date exp = claims.getExpiration();
-        return username != null && username.equals(user.getUsername()) && exp != null && exp.after(new Date());
+        try {
+            Claims claims = parseAllClaims(token);
+            String username = claims.getSubject();
+            Date exp = claims.getExpiration();
+            return username != null && username.equals(user.getUsername()) && exp != null && exp.after(new Date());
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private Claims parseAllClaims(String token) {
