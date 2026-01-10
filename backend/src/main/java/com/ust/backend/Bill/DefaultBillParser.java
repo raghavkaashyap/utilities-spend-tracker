@@ -62,8 +62,8 @@ public class DefaultBillParser implements BillParser {
     }
 
     private UtilityType detectUtilityType(String lower, String filename) {
-        if (lower.contains("electric") || lower.contains("kwh") || lower.contains("meter")) return UtilityType.ELECTRICITY;
-        if (lower.contains("water") || lower.contains("gallons") || lower.contains("meter")) return UtilityType.WATER;
+        if (lower.contains("electric") || lower.contains("kwh")) return UtilityType.ELECTRICITY;
+        if (lower.contains("water") || lower.contains("gallons")) return UtilityType.WATER;
         if (lower.contains("gas") || lower.contains("therms")) return UtilityType.GAS;
         if (lower.contains("internet") || lower.contains("wifi") || lower.contains("broadband") || lower.contains("fiber") || lower.contains("isp")) return UtilityType.INTERNET;
         if (lower.contains("sewer") || lower.contains("waste") || lower.contains("drainage")) return UtilityType.SEWER;
