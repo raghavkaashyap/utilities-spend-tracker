@@ -35,6 +35,7 @@ public class JwtService {
             throw new IllegalStateException("JWT Secret is too weak! Must be at least 32 bytes long for HS256 security.");
         }
         this.key = Keys.hmacShaKeyFor(bytes);
+        this.secret = null;
     }
 
     public String generateToken(UserDetails user) {

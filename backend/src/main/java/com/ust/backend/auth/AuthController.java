@@ -3,6 +3,9 @@ package com.ust.backend.auth;
 import com.ust.backend.user.AppRole;
 import com.ust.backend.user.AppUser;
 import com.ust.backend.user.AppUserRepo;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -40,11 +43,11 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public record LoginRequest(String username, String password) {}
-    public record SignupRequest(String username, String password) {}
+    public record LoginRequest(@NotBlank String username, @NotBlank String password) {}
+    public record SignupRequest(@NotBlank String username, @NotBlank @Size(min = 6) String password) {}
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@RequestBody @Valid LoginRequest request) {
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.username(), request.password())
@@ -58,7 +61,7 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
+    public ResponseEntity<?> signup(@RequestBody @Valid SignupRequest request) {
         if (appUserRepo.existsByUsername(request.username())) {
             return ResponseEntity.badRequest().body(Map.of("error", "Username already exists"));
         }
