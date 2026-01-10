@@ -40,7 +40,7 @@ public class SecurityConfig {
                         .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.FORWARD).permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // allow CORS preflight
-                        .requestMatchers("/", "/health", "/auth/login").permitAll()
+                        .requestMatchers("/", "/health", "/auth/login", "/auth/signup").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/user/**", "/api/**").hasAnyRole("USER", "ADMIN")
                         .anyRequest().authenticated()

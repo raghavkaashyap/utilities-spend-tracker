@@ -17,5 +17,4 @@ public class ParsedBill {
     private LocalDate serviceMonth; // normalized to first day of month when available
     private LocalDate dueDate;
     private BigDecimal amount;
-
 }

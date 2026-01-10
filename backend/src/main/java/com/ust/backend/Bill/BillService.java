@@ -120,8 +120,13 @@ public class BillService {
         try {
             String text = pdfParseService.extractText(file);
             ParsedBill parsed = billParser.parse(text, file.getOriginalFilename());
+
+            // Clean up notes: collapse excessive whitespace/newlines and truncate
+            String cleanedText = text != null ? text.replaceAll("\\s+", " ").trim() : "";
+            String notes = (cleanedText.length() > 4000) ? cleanedText.substring(0, 4000) + "..." : cleanedText;
+
             Bill.BillBuilder builder = Bill.builder()
-                    .notes(text)
+                    .notes(notes)
                     .status(BillStatus.UNPAID);
             if (parsed != null) {
                 if (parsed.getUtilityType() != null) builder.utilityType(parsed.getUtilityType());
