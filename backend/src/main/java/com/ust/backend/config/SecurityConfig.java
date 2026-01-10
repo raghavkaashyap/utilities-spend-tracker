@@ -51,7 +51,7 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource(Environment env) {
-        String allowedOrigin = env.getProperty("ust.cors.allowed-origin", "http://localhost:3000");
+        String allowedOrigin = env.getProperty("ust.cors.allowed-origin", "http://localhost:5173");
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(allowedOrigin));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
