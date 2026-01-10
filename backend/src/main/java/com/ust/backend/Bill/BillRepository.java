@@ -12,19 +12,22 @@ import java.util.List;
 public interface BillRepository extends JpaRepository<Bill, Long> {
 
     // Non-pageable convenience method used by service
-    List<Bill> findAllByDueDateBetween(LocalDate start, LocalDate end);
+    List<Bill> findAllByUserIdAndDueDateBetween(long userId, LocalDate start, LocalDate end);
 
-    @Query("SELECT b.utilityType, SUM(b.amount) from Bill b group by b.utilityType ")
-    List<Object[]> getSumOfAmountByUtilityType();
+    List<Bill> findAllByUserId(long userId);
 
-    @Query("SELECT b.status, SUM(b.amount) from Bill b group by b.status ")
-    List<Object[]> getSumOfAmountByStatus();
+    @Query("SELECT b.utilityType, SUM(b.amount) from Bill b where b.user.id = :userId group by b.utilityType ")
+    List<Object[]> getSumOfAmountByUtilityType(@Param("userId") long userId);
 
-    @Query("SELECT b.serviceMonth, SUM(b.amount) from Bill b group by b.serviceMonth ")
-    List<Object[]> getMonthlyTotals();
+    @Query("SELECT b.status, SUM(b.amount) from Bill b where b.user.id = :userId group by b.status ")
+    List<Object[]> getSumOfAmountByStatus(@Param("userId") long userId);
 
-    @Query("SELECT b FROM Bill b WHERE (:utilityType IS NULL OR b.utilityType = :utilityType) AND (:status IS NULL OR b.status = :status) AND ((:start IS NULL AND :end IS NULL) OR (b.serviceMonth >= :start AND b.serviceMonth < :end))")
-    List<Bill> findByOptionalFilters(@Param("utilityType") UtilityType utilityType,
+    @Query("SELECT b.serviceMonth, SUM(b.amount) from Bill b where b.user.id = :userId group by b.serviceMonth ")
+    List<Object[]> getMonthlyTotals(@Param("userId") long userId);
+
+    @Query("SELECT b FROM Bill b WHERE b.user.id = :userId AND (:utilityType IS NULL OR b.utilityType = :utilityType) AND (:status IS NULL OR b.status = :status) AND ((:start IS NULL AND :end IS NULL) OR (b.serviceMonth >= :start AND b.serviceMonth < :end))")
+    List<Bill> findByOptionalFilters(@Param("userId") long userId,
+                                     @Param("utilityType") UtilityType utilityType,
                                      @Param("status") BillStatus status,
                                      @Param("start") LocalDate start,
                                      @Param("end") LocalDate end);

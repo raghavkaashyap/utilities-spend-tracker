@@ -1,6 +1,10 @@
 package com.ust.backend.bill;
 
+import com.ust.backend.user.AppUser;
+import com.ust.backend.user.AppUserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
@@ -17,22 +21,36 @@ public class BillService {
     private final BillRepository billRepository;
     private final PdfParseService pdfParseService;
     private final BillParser billParser;
+    private final AppUserRepo userRepo;
 
     @Autowired
-    public BillService(BillRepository billRepository, PdfParseService pdfParseService, BillParser billParser) {
+    public BillService(BillRepository billRepository, PdfParseService pdfParseService, BillParser billParser, AppUserRepo userRepo) {
         this.billRepository = billRepository;
         this.pdfParseService = pdfParseService;
         this.billParser = billParser;
+        this.userRepo = userRepo;
+    }
+
+    private AppUser getCurrentUser() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username;
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails) principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
+        return userRepo.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
     }
 
     public List<Bill> getBills(){
-        return billRepository.findAll();
+        return billRepository.findAllByUserId(getCurrentUser().getId());
     }
 
     public List<Bill> getBillsDueInTheNextMonth(){
         LocalDate today = LocalDate.now();
         LocalDate nextMonth = today.plusMonths(1);
-        return billRepository.findAllByDueDateBetween(today, nextMonth);
+        return billRepository.findAllByUserIdAndDueDateBetween(getCurrentUser().getId(), today, nextMonth);
     }
 
     public List<Bill> filterBills(String month, BillStatus status, UtilityType utilityType){
@@ -47,34 +65,39 @@ public class BillService {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid month format. Use YYYY-MM");
             }
         }
-        return billRepository.findByOptionalFilters(utilityType, status, start, end);
+        return billRepository.findByOptionalFilters(getCurrentUser().getId(), utilityType, status, start, end);
     }
 
     public List<Object[]> getSumOfAmountByUtilityType(){
-        return billRepository.getSumOfAmountByUtilityType();
+        return billRepository.getSumOfAmountByUtilityType(getCurrentUser().getId());
     }
 
     public List<Object[]> getSumOfAmountByStatus(){
-        return billRepository.getSumOfAmountByStatus();
+        return billRepository.getSumOfAmountByStatus(getCurrentUser().getId());
     }
 
     public List<Object[]> getMonthlyTotals(){
-        return billRepository.getMonthlyTotals();
+        return billRepository.getMonthlyTotals(getCurrentUser().getId());
     }
 
     @Transactional
     public Bill saveBill(Bill bill){
+        bill.setUser(getCurrentUser());
         return billRepository.save(bill);
     }
 
     public Bill getBillById(long id){
-        return billRepository.findById(id)
+        Bill bill = billRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Bill not found: " + id));
+        if (bill.getUser().getId() != getCurrentUser().getId()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+        }
+        return bill;
     }
 
     @Transactional
     public Bill updateBill(long id, Bill updated){
-        Bill existing = getBillById(id);
+        Bill existing = getBillById(id); // Checks ownership
         // Update mutable fields
         if (updated.getUtilityType() != null) existing.setUtilityType(updated.getUtilityType());
         if (updated.getServiceMonth() != null) existing.setServiceMonth(updated.getServiceMonth());
@@ -87,26 +110,21 @@ public class BillService {
 
     @Transactional
     public Bill updateStatus(long id, BillStatus status){
-        Bill existing = getBillById(id);
+        Bill existing = getBillById(id); // Checks ownership
         existing.setStatus(status);
         return billRepository.save(existing);
     }
 
     @Transactional
     public void deleteById(long id){
-        if (!billRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Bill not found: " + id);
-        }
-        billRepository.deleteById(id);
+        Bill bill = getBillById(id); // Checks ownership
+        billRepository.delete(bill);
     }
 
     @Transactional
     public void deleteAll(){
-        billRepository.deleteAll();
-    }
-
-    public void deleteBill(Bill bill){
-        billRepository.delete(bill);
+        List<Bill> bills = billRepository.findAllByUserId(getCurrentUser().getId());
+        billRepository.deleteAll(bills);
     }
 
     public Bill createBillFromPdf(MultipartFile file) {
@@ -135,6 +153,7 @@ public class BillService {
                 if (parsed.getServiceMonth() != null) builder.serviceMonth(parsed.getServiceMonth());
             }
             Bill bill = builder.build();
+            bill.setUser(getCurrentUser());
             return billRepository.save(bill);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to parse PDF: " + e.getMessage());

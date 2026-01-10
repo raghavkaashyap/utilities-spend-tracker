@@ -1,5 +1,6 @@
 package com.ust.backend.bill;
 
+import com.ust.backend.user.AppUser;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,6 +18,10 @@ public class Bill {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private AppUser user;
 
     @Enumerated(EnumType.STRING)
     private UtilityType utilityType;
