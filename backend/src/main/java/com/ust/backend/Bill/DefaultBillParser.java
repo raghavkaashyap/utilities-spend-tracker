@@ -37,6 +37,9 @@ public class DefaultBillParser implements BillParser {
     // Service/Billing period hints
     private static final Pattern PERIOD_LINE = Pattern.compile("(?i)(service|billing)\\s*(period|month|for)[:\\s-]*([A-Za-z]{3,9}\\s+\\d{4}|\\d{1,2}/\\d{4}|\\d{4}-\\d{1,2})");
 
+    // Service date range hints (e.g. 12/01/2023 - 01/01/2024)
+    private static final Pattern DATE_RANGE = Pattern.compile("(?i)(\\d{1,2}[/-]\\d{1,2}[/-]\\d{2,4})\\s*-\\s*(\\d{1,2}[/-]\\d{1,2}[/-]\\d{2,4})");
+
     @Override
     public ParsedBill parse(String text, String sourceFilename) {
         if (text == null) text = "";
@@ -63,6 +66,8 @@ public class DefaultBillParser implements BillParser {
         if (lower.contains("water") || lower.contains("gallons") || lower.contains("meter")) return UtilityType.WATER;
         if (lower.contains("gas") || lower.contains("therms")) return UtilityType.GAS;
         if (lower.contains("internet") || lower.contains("wifi") || lower.contains("broadband") || lower.contains("fiber") || lower.contains("isp")) return UtilityType.INTERNET;
+        if (lower.contains("sewer") || lower.contains("waste") || lower.contains("drainage")) return UtilityType.SEWER;
+        if (lower.contains("processing fee") || lower.contains("convenience fee") || lower.contains("service fee")) return UtilityType.PROCESSING_FEE;
         if (filename != null) {
             String f = filename.toLowerCase(Locale.ENGLISH);
             if (f.contains("electric") || f.contains("power")) return UtilityType.ELECTRICITY;
@@ -76,22 +81,32 @@ public class DefaultBillParser implements BillParser {
     private BigDecimal findLikelyTotalAmount(String text) {
         if (text == null) return null;
         Matcher m = MONEY_PATTERN.matcher(text);
-        BigDecimal best = null;
+        BigDecimal maxLabeled = null;
+        BigDecimal maxUnlabeled = null;
+
         while (m.find()) {
             String num = null;
+            boolean isLabeled = false;
             // groups 5 or 7 depending on which branch matched
-            if (m.group(5) != null) num = m.group(5);
-            else if (m.group(7) != null) num = m.group(7);
+            if (m.group(5) != null) {
+                num = m.group(5);
+                isLabeled = true;
+            } else if (m.group(7) != null) {
+                num = m.group(7);
+            }
             if (num == null) continue;
             num = num.replace(",", "");
             try {
                 BigDecimal val = new BigDecimal(num);
-                if (best == null || val.compareTo(best) > 0) {
-                    best = val; // choose largest as total due approximation
+                if (isLabeled) {
+                    if (maxLabeled == null || val.compareTo(maxLabeled) > 0) maxLabeled = val;
+                } else {
+                    if (maxUnlabeled == null || val.compareTo(maxUnlabeled) > 0) maxUnlabeled = val;
                 }
             } catch (NumberFormatException ignored) {}
         }
-        return best;
+        // Prioritize a labeled "Total Due" over just a loose number
+        return maxLabeled != null ? maxLabeled : maxUnlabeled;
     }
 
     private LocalDate findDueDate(String text) {
@@ -144,10 +159,18 @@ public class DefaultBillParser implements BillParser {
                 YearMonth ym = parseMonthYearWords(t);
                 if (ym != null) return ym.atDay(1);
             }
+            // Try date range (take the end date's month)
+            Matcher m3 = DATE_RANGE.matcher(text);
+            if (m3.find()) {
+                String endDateStr = m3.group(2);
+                for (DateTimeFormatter fmt : DATE_FORMATS) {
+                    try { return LocalDate.parse(endDateStr, fmt).withDayOfMonth(1); } catch (Exception ignored) {}
+                }
+            }
         }
-        // Fallback: derive from due date (assume service month = dueDate month)
+        // Fallback: derive from due date (assume service month = month before due date)
         if (dueDate != null) {
-            YearMonth ym = YearMonth.from(dueDate);
+            YearMonth ym = YearMonth.from(dueDate).minusMonths(1);
             return ym.atDay(1);
         }
         return null;
