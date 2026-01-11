@@ -50,3 +50,14 @@ backend/src/main/resources/application-dev.properties
 *.env
 
 HELP.md
+
+# Frontend (Vite / Node)
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+frontend/.DS_Store
+frontend/.vite/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
