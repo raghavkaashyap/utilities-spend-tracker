@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getBills, deleteBill, updateBillStatus } from "../services/billService";
 import type { Bill, BillStatus, UtilityType } from "../types";
-import { MoreVertical, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 export default function BillsList({ key: _key }: { key?: number }) {
   const [bills, setBills] = useState<Bill[]>([]);
