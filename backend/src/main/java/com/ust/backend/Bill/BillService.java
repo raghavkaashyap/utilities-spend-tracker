@@ -135,6 +135,9 @@ public class BillService {
         if (!org.springframework.http.MediaType.APPLICATION_PDF_VALUE.equalsIgnoreCase(contentType)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only PDF files are supported");
         }
+
+        AppUser currentUser = getCurrentUser();
+        Bill bill;
         try {
             String text = pdfParseService.extractText(file);
             ParsedBill parsed = billParser.parse(text, file.getOriginalFilename());
@@ -152,12 +155,11 @@ public class BillService {
                 if (parsed.getDueDate() != null) builder.dueDate(parsed.getDueDate());
                 if (parsed.getServiceMonth() != null) builder.serviceMonth(parsed.getServiceMonth());
             }
-            Bill bill = builder.build();
-            bill.setUser(getCurrentUser());
-            return billRepository.save(bill);
+            bill = builder.build();
+            bill.setUser(currentUser);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to parse PDF: " + e.getMessage());
         }
+        return billRepository.save(bill);
     }
-
 }
