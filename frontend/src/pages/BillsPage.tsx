@@ -1,27 +1,36 @@
 import BillUpload from "../components/BillUpload";
 import BillsList from "../components/BillsList";
+import { useState } from "react";
 
 export default function BillsPage() {
+  const [key, setKey] = useState(0);
+  const onBillUploaded = () => {
+    setKey(prev => prev + 1);
+  }
   return (
-    <div className="p-8 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">
-        Utility Bills
-      </h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-1">
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold text-text-base">Utility Bills</h1>
+        <p className="text-text-muted">
+          Upload and manage your utility bills.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-1">
+          <div className="bg-base-100 p-6 rounded-2xl shadow-lg">
+            <h2 className="text-xl font-semibold text-text-base mb-4">
               Upload New Bill
             </h2>
-            <BillUpload />
+            <BillUpload onBillUploaded={onBillUploaded} />
           </div>
         </div>
-        <div className="md:col-span-2">
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">
+        <div className="lg:col-span-2">
+          <div className="bg-base-100 p-6 rounded-2xl shadow-lg">
+            <h2 className="text-xl font-semibold text-text-base mb-4">
               Submitted Bills
             </h2>
-            <BillsList />
+            <BillsList key={key} />
           </div>
         </div>
       </div>
