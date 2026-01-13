@@ -15,9 +15,9 @@ export type BillStatus = 'PAID' | 'UNPAID' | 'OVERDUE' | 'PARTIAL';
 export interface Bill {
   id?: number;
   utilityType?: UtilityType | null;
-  serviceMonth?: string | null; // ISO date
-  dueDate?: string | null; // ISO date
-  amount?: string | null; // string as backend sends BigDecimal
+  serviceMonth?: string | null;
+  dueDate?: string | null;
+  amount?: string | null;
   status?: BillStatus | null;
   notes?: string | null;
   createdAt?: string | null;
