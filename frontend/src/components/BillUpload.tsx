@@ -27,10 +27,8 @@ export default function BillUpload({ onBillUploaded }: { onBillUploaded: () => v
     setMessage(null);
     setError(null);
     try {
-      const bill = await uploadBill(file);
-      setMessage(
-        `Uploaded bill id=${bill.id} (${bill.utilityType ?? "unknown"})`
-      );
+      await uploadBill(file);
+      setMessage("Successfully uploaded!");
       setFile(null);
       onBillUploaded();
     } catch (err: any) {
