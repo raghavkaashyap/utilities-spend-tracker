@@ -7,8 +7,8 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,23 +22,74 @@ public class DefaultBillParser implements BillParser {
     // Currency like $123.45 or 1,234.56 or 123.45
     private static final Pattern MONEY_PATTERN = Pattern.compile("(?i)(total\\s*(amount)?\\s*(due|payment|balance)[^\\n\\r:$]*[:$]?\\s*([$])?\\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\\.[0-9]{2})?|[0-9]+\\.[0-9]{2}))|([$])\\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\\.[0-9]{2})?)");
 
+    private static final Pattern AMOUNT_TOKEN = Pattern.compile("([$])?\\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\\.[0-9]{2})|[0-9]+\\.[0-9]{2})");
+
     // Due date hints
-    private static final Pattern DUE_DATE_LINE = Pattern.compile("(?i)(due\\s*date|payment\\s*due)[^\\n\\r]*");
+    private static final Pattern DUE_DATE_LINE = Pattern.compile("(?i)(due\\s*date|payment\\s*due|pay\\s*by|please\\s*pay\\s*by|due\\s*on)[^\\n\\r]*");
 
     // Common date formats
     private static final DateTimeFormatter[] DATE_FORMATS = new DateTimeFormatter[]{
             DateTimeFormatter.ofPattern("M/d/yyyy"),
             DateTimeFormatter.ofPattern("MM/dd/yyyy"),
+            DateTimeFormatter.ofPattern("M/d/yy"),
+            DateTimeFormatter.ofPattern("MM/dd/yy"),
+            DateTimeFormatter.ofPattern("M-d-yyyy"),
+            DateTimeFormatter.ofPattern("MM-dd-yyyy"),
+            DateTimeFormatter.ofPattern("M-d-yy"),
+            DateTimeFormatter.ofPattern("MM-dd-yy"),
             DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH),
             DateTimeFormatter.ofPattern("MMMM d, yyyy", Locale.ENGLISH),
             DateTimeFormatter.ISO_LOCAL_DATE
     };
 
     // Service/Billing period hints
-    private static final Pattern PERIOD_LINE = Pattern.compile("(?i)(service|billing)\\s*(period|month|for)[:\\s-]*([A-Za-z]{3,9}\\s+\\d{4}|\\d{1,2}/\\d{4}|\\d{4}-\\d{1,2})");
+    private static final Pattern PERIOD_LINE = Pattern.compile("(?i)(service|billing|statement)\\s*(period|month|for|cycle)[:\\s-]*([A-Za-z]{3,9}\\s+\\d{4}|\\d{1,2}/\\d{4}|\\d{4}-\\d{1,2})");
+
+    private static final Pattern YEAR_MONTH_TOKEN = Pattern.compile("(?i)([A-Za-z]{3,9}\\s+\\d{4}|\\d{1,2}/\\d{4}|\\d{4}-\\d{1,2})");
 
     // Service date range hints (e.g. 12/01/2023 - 01/01/2024)
     private static final Pattern DATE_RANGE = Pattern.compile("(?i)(\\d{1,2}[/-]\\d{1,2}[/-]\\d{2,4})\\s*-\\s*(\\d{1,2}[/-]\\d{1,2}[/-]\\d{2,4})");
+
+    private static final List<LabelWeight> AMOUNT_LABELS = List.of(
+            new LabelWeight("total amount due", 5),
+            new LabelWeight("amount due", 4),
+            new LabelWeight("total due", 4),
+            new LabelWeight("balance due", 3),
+            new LabelWeight("current balance", 3),
+            new LabelWeight("payment due", 3),
+            new LabelWeight("please pay", 2),
+            new LabelWeight("amount payable", 2),
+            new LabelWeight("new balance", 2),
+            new LabelWeight("total payment", 2)
+    );
+
+    private static final List<LabelWeight> DUE_DATE_LABELS = List.of(
+            new LabelWeight("due date", 5),
+            new LabelWeight("payment due", 4),
+            new LabelWeight("pay by", 3),
+            new LabelWeight("please pay by", 3),
+            new LabelWeight("due on", 3)
+    );
+
+    private static final List<LabelWeight> SERVICE_MONTH_LABELS = List.of(
+            new LabelWeight("service period", 4),
+            new LabelWeight("billing period", 4),
+            new LabelWeight("billing month", 3),
+            new LabelWeight("service month", 3),
+            new LabelWeight("statement period", 3),
+            new LabelWeight("billing cycle", 2),
+            new LabelWeight("service cycle", 2)
+    );
+
+    private static final class LabelWeight {
+        private final String normalized;
+        private final int weight;
+
+        private LabelWeight(String label, int weight) {
+            this.normalized = normalize(label);
+            this.weight = weight;
+        }
+    }
 
     @Override
     public ParsedBill parse(String text, String sourceFilename) {
@@ -80,6 +131,8 @@ public class DefaultBillParser implements BillParser {
 
     private BigDecimal findLikelyTotalAmount(String text) {
         if (text == null) return null;
+        BigDecimal labeled = findLabeledAmount(text);
+        if (labeled != null) return labeled;
         Matcher m = MONEY_PATTERN.matcher(text);
         BigDecimal maxLabeled = null;
         BigDecimal maxUnlabeled = null;
@@ -109,8 +162,57 @@ public class DefaultBillParser implements BillParser {
         return maxLabeled != null ? maxLabeled : maxUnlabeled;
     }
 
+    private BigDecimal findLabeledAmount(String text) {
+        String[] lines = splitLines(text);
+        BigDecimal best = null;
+        int bestScore = 0;
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            int score = labelScore(normalize(line), AMOUNT_LABELS);
+            if (score == 0) continue;
+            BigDecimal amt = extractLargestAmount(line);
+            if (amt == null && i + 1 < lines.length) {
+                amt = extractLargestAmount(lines[i + 1]);
+            }
+            if (amt == null) continue;
+            if (score > bestScore || best == null || (score == bestScore && amt.compareTo(best) > 0)) {
+                best = amt;
+                bestScore = score;
+            }
+        }
+        return best;
+    }
+
+    private BigDecimal extractLargestAmount(String line) {
+        if (line == null) return null;
+        Matcher m = AMOUNT_TOKEN.matcher(line);
+        BigDecimal best = null;
+        while (m.find()) {
+            String num = m.group(2);
+            if (num == null) continue;
+            num = num.replace(",", "");
+            try {
+                BigDecimal val = new BigDecimal(num);
+                if (best == null || val.compareTo(best) > 0) {
+                    best = val;
+                }
+            } catch (NumberFormatException ignored) {}
+        }
+        return best;
+    }
+
     private LocalDate findDueDate(String text) {
         if (text == null) return null;
+        String[] lines = splitLines(text);
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            if (labelScore(normalize(line), DUE_DATE_LABELS) == 0) continue;
+            LocalDate d = scanLineForDate(line);
+            if (d == null && i + 1 < lines.length) {
+                d = scanLineForDate(lines[i + 1]);
+            }
+            if (d != null) return d;
+        }
         Matcher lineM = DUE_DATE_LINE.matcher(text);
         if (lineM.find()) {
             String line = lineM.group();
@@ -130,7 +232,7 @@ public class DefaultBillParser implements BillParser {
     private LocalDate scanLineForDate(String s) {
         if (s == null) return null;
         // simple date token pattern
-        Pattern token = Pattern.compile("(\\n|\\r| |\\t|:)?([0-9]{1,2}/[0-9]{1,2}/[0-9]{4}|[A-Za-z]{3,9} [0-9]{1,2}, [0-9]{4}|[0-9]{4}-[0-9]{2}-[0-9]{2})");
+        Pattern token = Pattern.compile("(\\n|\\r| |\\t|:)?([0-9]{1,2}[/-][0-9]{1,2}[/-][0-9]{2,4}|[A-Za-z]{3,9} [0-9]{1,2}, [0-9]{4}|[0-9]{4}-[0-9]{2}-[0-9]{2})");
         Matcher m = token.matcher(s);
         while (m.find()) {
             String candidate = m.group(2);
@@ -145,6 +247,22 @@ public class DefaultBillParser implements BillParser {
 
     private LocalDate findServiceMonth(String text, LocalDate dueDate) {
         if (text != null) {
+            String[] lines = splitLines(text);
+            for (int i = 0; i < lines.length; i++) {
+                String line = lines[i];
+                if (labelScore(normalize(line), SERVICE_MONTH_LABELS) == 0) continue;
+                LocalDate d = extractYearMonth(line);
+                if (d == null && i + 1 < lines.length) {
+                    d = extractYearMonth(lines[i + 1]);
+                }
+                if (d == null) {
+                    d = extractDateRangeMonth(line);
+                }
+                if (d == null && i + 1 < lines.length) {
+                    d = extractDateRangeMonth(lines[i + 1]);
+                }
+                if (d != null) return d;
+            }
             Matcher m = PERIOD_LINE.matcher(text);
             if (m.find()) {
                 String token = m.group(3);
@@ -172,6 +290,29 @@ public class DefaultBillParser implements BillParser {
         if (dueDate != null) {
             YearMonth ym = YearMonth.from(dueDate).minusMonths(1);
             return ym.atDay(1);
+        }
+        return null;
+    }
+
+    private LocalDate extractYearMonth(String line) {
+        if (line == null) return null;
+        Matcher m = YEAR_MONTH_TOKEN.matcher(line);
+        if (m.find()) {
+            return parseYearMonthToken(m.group(1));
+        }
+        return null;
+    }
+
+    private LocalDate extractDateRangeMonth(String line) {
+        if (line == null) return null;
+        Matcher m = DATE_RANGE.matcher(line);
+        if (m.find()) {
+            String endDateStr = m.group(2);
+            for (DateTimeFormatter fmt : DATE_FORMATS) {
+                try {
+                    return LocalDate.parse(endDateStr, fmt).withDayOfMonth(1);
+                } catch (Exception ignored) {}
+            }
         }
         return null;
     }
@@ -208,5 +349,25 @@ public class DefaultBillParser implements BillParser {
             return YearMonth.parse(s, f2);
         } catch (Exception ignored) {}
         return null;
+    }
+
+    private static int labelScore(String normalizedLine, List<LabelWeight> labels) {
+        int score = 0;
+        for (LabelWeight label : labels) {
+            if (normalizedLine.contains(label.normalized)) {
+                score = Math.max(score, label.weight);
+            }
+        }
+        return score;
+    }
+
+    private static String normalize(String input) {
+        if (input == null) return "";
+        return input.toLowerCase(Locale.ENGLISH).replaceAll("[^a-z0-9]+", " ").trim();
+    }
+
+    private static String[] splitLines(String text) {
+        if (text == null) return new String[0];
+        return text.split("\\r?\\n");
     }
 }
