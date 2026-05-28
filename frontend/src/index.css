@@ -13,30 +13,82 @@
 }
 
 :root {
-  --color-primary: #6366f1;
-  --color-secondary: #ec4899;
-  --color-accent: #f59e0b;
+  --color-primary: #0071e3;
+  --color-secondary: #0a84ff;
+  --color-accent: #34c759;
   --color-base-100: #ffffff;
-  --color-base-200: #f3f4f6;
-  --color-base-300: #e5e7eb;
-  --color-text-base: #1f2937;
-  --color-text-muted: #6b7280;
+  --color-base-200: #f5f5f7;
+  --color-base-300: #e3e6ea;
+  --color-text-base: #1d1d1f;
+  --color-text-muted: #6e6e73;
   --color-text-inverted: #ffffff;
 }
 
 .dark {
-  --color-primary: #818cf8;
-  --color-secondary: #f472b6;
-  --color-accent: #fbbf24;
-  --color-base-100: #1f2937;
-  --color-base-200: #374151;
-  --color-base-300: #4b5563;
-  --color-text-base: #f9fafb;
-  --color-text-muted: #9ca3af;
-  --color-text-inverted: #1f2937;
+  --color-primary: #0a84ff;
+  --color-secondary: #64d2ff;
+  --color-accent: #32d74b;
+  --color-base-100: #121214;
+  --color-base-200: #1a1a1f;
+  --color-base-300: #2c2c31;
+  --color-text-base: #f5f5f7;
+  --color-text-muted: #a1a1a6;
+  --color-text-inverted: #121214;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
 }
 
 body {
   @apply bg-base-100 text-text-base;
-  transition: background-color 0.3s, color 0.3s;
+  font-family: "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial,
+    sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  background-image: radial-gradient(
+      1200px 500px at 80% -20%,
+      rgba(0, 113, 227, 0.14),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 400px at -20% -20%,
+      rgba(52, 199, 89, 0.1),
+      transparent 55%
+    );
+}
+
+.glass-card {
+  background: color-mix(in srgb, var(--color-base-100) 84%, white 16%);
+  border: 1px solid color-mix(in srgb, var(--color-base-300) 62%, transparent);
+  box-shadow: 0 22px 44px -24px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(16px);
+}
+
+.dark .glass-card {
+  background: color-mix(in srgb, var(--color-base-100) 90%, black 10%);
+}
+
+.hero-title {
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+.subtle-grid {
+  background-image: linear-gradient(
+      to right,
+      color-mix(in srgb, var(--color-base-300) 30%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--color-base-300) 24%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 28px 28px;
 }

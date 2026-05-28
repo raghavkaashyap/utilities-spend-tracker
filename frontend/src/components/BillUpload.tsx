@@ -27,10 +27,8 @@ export default function BillUpload({ onBillUploaded }: { onBillUploaded: () => v
     setMessage(null);
     setError(null);
     try {
-      const bill = await uploadBill(file);
-      setMessage(
-        `Uploaded bill id=${bill.id} (${bill.utilityType ?? "unknown"})`
-      );
+      await uploadBill(file);
+      setMessage("Successfully uploaded!");
       setFile(null);
       onBillUploaded();
     } catch (err: any) {
@@ -45,7 +43,7 @@ export default function BillUpload({ onBillUploaded }: { onBillUploaded: () => v
       <div>
         <label
           htmlFor="file-upload"
-          className="relative flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-base-200 border-base-300 hover:bg-base-300"
+          className="relative flex flex-col items-center justify-center w-full h-48 border border-dashed rounded-2xl cursor-pointer bg-base-200/80 border-base-300 hover:bg-base-300/70 transition-colors"
         >
           {file ? (
             <div className="text-center">
@@ -55,7 +53,7 @@ export default function BillUpload({ onBillUploaded }: { onBillUploaded: () => v
               <button
                 type="button"
                 onClick={() => setFile(null)}
-                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full"
+                className="absolute top-3 right-3 p-1.5 bg-red-500 text-white rounded-full"
               >
                 <X size={16} />
               </button>
@@ -76,7 +74,7 @@ export default function BillUpload({ onBillUploaded }: { onBillUploaded: () => v
       <button
         type="submit"
         disabled={!file || loading}
-        className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 disabled:bg-primary/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+        className="w-full flex justify-center py-3 px-4 border border-transparent rounded-2xl text-sm font-medium text-white bg-primary hover:bg-primary/90 disabled:bg-primary/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
       >
         {loading ? "Uploading..." : "Upload Bill"}
       </button>
