@@ -60,15 +60,15 @@ export default function BillsList({ key: _key }: { key?: number }) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <form onSubmit={onFilter} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <div className="md:col-span-1">
-          <label htmlFor="month" className="block text-sm font-medium text-text-muted">Month</label>
-          <input type="month" id="month" value={month} onChange={(e) => setMonth(e.target.value)} className="mt-1 block w-full rounded-lg border-base-300 bg-base-200 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" />
+          <label htmlFor="month" className="block text-xs font-medium uppercase tracking-wide text-text-muted">Month</label>
+          <input type="month" id="month" value={month} onChange={(e) => setMonth(e.target.value)} className="mt-1 block w-full rounded-xl border border-base-300 bg-base-200/85 px-3 py-2.5 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" />
         </div>
         <div className="md:col-span-1">
-          <label htmlFor="status" className="block text-sm font-medium text-text-muted">Status</label>
-          <select id="status" value={status} onChange={(e) => setStatus(e.target.value as BillStatus | "")} className="mt-1 block w-full rounded-lg border-base-300 bg-base-200 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
+          <label htmlFor="status" className="block text-xs font-medium uppercase tracking-wide text-text-muted">Status</label>
+          <select id="status" value={status} onChange={(e) => setStatus(e.target.value as BillStatus | "")} className="mt-1 block w-full rounded-xl border border-base-300 bg-base-200/85 px-3 py-2.5 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
             <option value="">All</option>
             <option value="PAID">PAID</option>
             <option value="UNPAID">UNPAID</option>
@@ -77,8 +77,8 @@ export default function BillsList({ key: _key }: { key?: number }) {
           </select>
         </div>
         <div className="md:col-span-1">
-          <label htmlFor="utility" className="block text-sm font-medium text-text-muted">Utility</label>
-          <select id="utility" value={utilityType} onChange={(e) => setUtilityType(e.target.value as UtilityType | "")} className="mt-1 block w-full rounded-lg border-base-300 bg-base-200 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
+          <label htmlFor="utility" className="block text-xs font-medium uppercase tracking-wide text-text-muted">Utility</label>
+          <select id="utility" value={utilityType} onChange={(e) => setUtilityType(e.target.value as UtilityType | "")} className="mt-1 block w-full rounded-xl border border-base-300 bg-base-200/85 px-3 py-2.5 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
             <option value="">All</option>
             <option value="ELECTRICITY">ELECTRICITY</option>
             <option value="WATER">WATER</option>
@@ -90,7 +90,7 @@ export default function BillsList({ key: _key }: { key?: number }) {
           </select>
         </div>
         <div className="self-end">
-          <button type="submit" className="w-full justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+          <button type="submit" className="w-full justify-center py-2.5 px-4 border border-transparent rounded-xl text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
             Filter
           </button>
         </div>
@@ -101,9 +101,9 @@ export default function BillsList({ key: _key }: { key?: number }) {
           <p className="text-text-muted">Loading bills...</p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-2xl border border-base-300/70">
           <table className="min-w-full divide-y divide-base-300">
-            <thead className="bg-base-200">
+            <thead className="bg-base-200/90">
               <tr>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Utility</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">Amount</th>
@@ -112,9 +112,9 @@ export default function BillsList({ key: _key }: { key?: number }) {
                 <th scope="col" className="relative px-6 py-3"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
-            <tbody className="bg-base-100 divide-y divide-base-200">
+            <tbody className="bg-base-100/90 divide-y divide-base-200">
               {bills.map((b) => (
-                <tr key={b.id}>
+                <tr key={b.id} className="hover:bg-base-200/70 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-text-base">{b.utilityType}</div>
                     <div className="text-sm text-text-muted md:hidden">{b.dueDate ?? "-"}</div>
@@ -126,7 +126,7 @@ export default function BillsList({ key: _key }: { key?: number }) {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="relative inline-block text-left">
-                      <select value={b.status ?? ""} onChange={(e) => onChangeStatus(b.id!, e.target.value as BillStatus)} className="rounded-lg border-base-300 bg-base-200 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
+                      <select value={b.status ?? ""} onChange={(e) => onChangeStatus(b.id!, e.target.value as BillStatus)} className="rounded-lg border border-base-300 bg-base-200/85 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
                         <option value="PAID">PAID</option>
                         <option value="UNPAID">UNPAID</option>
                         <option value="OVERDUE">OVERDUE</option>
@@ -144,7 +144,7 @@ export default function BillsList({ key: _key }: { key?: number }) {
 
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-base-100 p-8 rounded-2xl shadow-lg max-w-sm w-full">
+          <div className="glass-card p-8 rounded-3xl max-w-sm w-full">
             <h3 className="text-lg font-bold text-text-base">Delete Bill</h3>
             <p className="mt-2 text-sm text-text-muted">Are you sure you want to delete this bill? This action cannot be undone.</p>
             <div className="mt-6 flex justify-end space-x-4">

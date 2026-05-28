@@ -63,27 +63,27 @@ export default function Summary() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-text-base">Spending Summary</h1>
-        <p className="text-text-muted">
+        <h1 className="hero-title text-4xl sm:text-5xl font-semibold text-text-base">Spending Summary</h1>
+        <p className="text-text-muted mt-2">
           An overview of your utility spending.
         </p>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        <div className="bg-base-100 p-6 rounded-2xl shadow-lg">
-          <h2 className="text-xl font-semibold text-text-base mb-4">
+        <div className="glass-card p-6 rounded-3xl">
+          <h2 className="text-xl font-semibold text-text-base mb-4 tracking-tight">
             By Utility
           </h2>
           <SpendBarChart data={byUtility} />
         </div>
-        <div className="bg-base-100 p-6 rounded-2xl shadow-lg">
-          <h2 className="text-xl font-semibold text-text-base mb-4">
+        <div className="glass-card p-6 rounded-3xl">
+          <h2 className="text-xl font-semibold text-text-base mb-4 tracking-tight">
             By Status
           </h2>
           <SpendBarChart data={byStatus} />
         </div>
-        <div className="bg-base-100 p-6 rounded-2xl shadow-lg xl:col-span-2">
-          <h2 className="text-xl font-semibold text-text-base mb-4">
+        <div className="glass-card p-6 rounded-3xl xl:col-span-2">
+          <h2 className="text-xl font-semibold text-text-base mb-4 tracking-tight">
             Monthly Totals
           </h2>
           <MonthlyTrendChart data={monthly} />

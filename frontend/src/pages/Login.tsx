@@ -22,18 +22,18 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-base-200 flex flex-col justify-center items-center p-4">
+    <div className="min-h-screen bg-base-200 subtle-grid flex flex-col justify-center items-center p-4">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-primary">Welcome Back!</h1>
-          <p className="text-text-muted">
+          <h1 className="hero-title text-5xl font-semibold text-text-base">Welcome back.</h1>
+          <p className="text-text-muted mt-2">
             Sign in to continue to UtilitiesSpendTracker
           </p>
         </div>
-        <div className="bg-base-100 p-8 rounded-2xl shadow-lg">
+        <div className="glass-card p-8 rounded-3xl">
           <form onSubmit={onSubmit} className="space-y-6">
             <div>
               <label
@@ -51,7 +51,7 @@ export default function Login() {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="appearance-none block w-full px-4 py-3 border border-base-300 rounded-lg shadow-sm bg-base-200 placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                  className="appearance-none block w-full px-4 py-3 border border-base-300 rounded-xl shadow-sm bg-base-200/85 placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                 />
               </div>
             </div>
@@ -72,7 +72,7 @@ export default function Login() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-4 py-3 border border-base-300 rounded-lg shadow-sm bg-base-200 placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                  className="appearance-none block w-full px-4 py-3 border border-base-300 rounded-xl shadow-sm bg-base-200/85 placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                 />
                 <button
                   type="button"
@@ -93,7 +93,7 @@ export default function Login() {
             <div>
               <button
                 type="submit"
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
               >
                 Sign in
               </button>
