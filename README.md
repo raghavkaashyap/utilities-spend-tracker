@@ -36,4 +36,8 @@ Tracking utilities manually is error-prone and time-consuming. UST provides a si
 - **Frontend:** React + Axios + Recharts  
 - **Backend:** Spring Boot + Apache Tika  
 - **Database:** MySQL (H2 for development)  
-- **Deployment:** Docker, Maven  
+- **Deployment:** Docker, Maven
+
+---
+
+## 🔗 [Live Site](https://utilities-spend-tracker.vercel.app)
