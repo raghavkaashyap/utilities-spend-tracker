@@ -38,6 +38,23 @@ build/
 # VS Code
 .vscode/
 
+# --- AI agent tooling ---
+.agent/
+.agents/
+.claude/
+.codebuddy/
+.codex/
+.continue/
+.cursor/
+.gemini/
+.github/prompts/
+.kiro/
+.opencode/
+.qoder/
+.roo/
+.trae/
+.windsurf/
+
 .DS_Store
 Thumbs.db
 
