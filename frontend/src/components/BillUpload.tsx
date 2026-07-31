@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { uploadBill } from "../services/billService";
 import { UploadCloud, File as FileIcon, X } from "lucide-react";
+import { LiquidButton } from "./ui/liquid-glass-button";
+import { getErrorMessage } from "../lib/errors";
 
 export default function BillUpload({ onBillUploaded }: { onBillUploaded: () => void }) {
   const [file, setFile] = useState<File | null>(null);
@@ -31,8 +33,8 @@ export default function BillUpload({ onBillUploaded }: { onBillUploaded: () => v
       setMessage("Successfully uploaded!");
       setFile(null);
       onBillUploaded();
-    } catch (err: any) {
-      setError(err?.response?.data?.message ?? err?.message ?? "Upload failed");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Upload failed"));
     } finally {
       setLoading(false);
     }
@@ -53,7 +55,7 @@ export default function BillUpload({ onBillUploaded }: { onBillUploaded: () => v
               <button
                 type="button"
                 onClick={() => setFile(null)}
-                className="absolute top-3 right-3 p-1.5 bg-red-500 text-white rounded-full"
+                className="absolute top-3 right-3 rounded-full bg-red-500 p-1.5 text-white transition-colors hover:bg-red-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40"
               >
                 <X size={16} />
               </button>
@@ -71,13 +73,13 @@ export default function BillUpload({ onBillUploaded }: { onBillUploaded: () => v
         <input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={handleFileChange} accept="application/pdf" />
       </div>
 
-      <button
+      <LiquidButton
         type="submit"
         disabled={!file || loading}
-        className="w-full flex justify-center py-3 px-4 border border-transparent rounded-2xl text-sm font-medium text-white bg-primary hover:bg-primary/90 disabled:bg-primary/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+        className="w-full"
       >
         {loading ? "Uploading..." : "Upload Bill"}
-      </button>
+      </LiquidButton>
 
       {message && <p className="text-sm text-green-500">{message}</p>}
       {error && <p className="text-sm text-red-500">{error}</p>}

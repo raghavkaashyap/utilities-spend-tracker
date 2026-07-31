@@ -45,7 +45,7 @@ const Layout = () => {
           <ThemeToggle />
           <button
             onClick={onLogout}
-            className="w-full flex items-center mt-4 px-4 py-3 text-base font-medium rounded-2xl text-text-muted hover:bg-red-500 hover:text-white transition-colors"
+            className="w-full flex cursor-pointer items-center mt-4 px-4 py-3 text-base font-medium rounded-2xl text-text-muted hover:bg-red-500 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40"
           >
             <LogOut size={24} />
             <span className="ml-3">Logout</span>
@@ -77,7 +77,7 @@ const Layout = () => {
           ))}
           <button
             onClick={onLogout}
-            className="flex flex-col items-center justify-center w-full h-full text-text-muted transition-colors hover:text-red-500"
+            className="flex flex-col cursor-pointer items-center justify-center w-full h-full text-text-muted transition-colors hover:text-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40"
           >
             <LogOut size={24} />
             <span className="text-xs mt-1">Logout</span>

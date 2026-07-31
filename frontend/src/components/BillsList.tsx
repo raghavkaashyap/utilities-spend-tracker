@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getBills, deleteBill, updateBillStatus } from "../services/billService";
 import type { Bill, BillStatus, UtilityType } from "../types";
 import { Trash2 } from "lucide-react";
+import { Button, LiquidButton } from "./ui/liquid-glass-button";
 
 export default function BillsList({ key: _key }: { key?: number }) {
   const [bills, setBills] = useState<Bill[]>([]);
@@ -10,14 +11,20 @@ export default function BillsList({ key: _key }: { key?: number }) {
   const [status, setStatus] = useState<BillStatus | "">("");
   const [utilityType, setUtilityType] = useState<UtilityType | "">("");
   const [showDeleteModal, setShowDeleteModal] = useState<number | null>(null);
+  const filtersRef = useRef({ month, status, utilityType });
 
-  const load = async () => {
+  useEffect(() => {
+    filtersRef.current = { month, status, utilityType };
+  }, [month, status, utilityType]);
+
+  const load = useCallback(async () => {
+    const filters = filtersRef.current;
     setLoading(true);
     try {
       const data = await getBills({
-        month: month || undefined,
-        status: status || undefined,
-        utilityType: utilityType || undefined,
+        month: filters.month || undefined,
+        status: filters.status || undefined,
+        utilityType: filters.utilityType || undefined,
       });
       setBills(data);
     } catch (err) {
@@ -25,11 +32,11 @@ export default function BillsList({ key: _key }: { key?: number }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     load();
-  }, [_key]);
+  }, [_key, load]);
 
   const onFilter = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -90,9 +97,9 @@ export default function BillsList({ key: _key }: { key?: number }) {
           </select>
         </div>
         <div className="self-end">
-          <button type="submit" className="w-full justify-center py-2.5 px-4 border border-transparent rounded-xl text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+          <LiquidButton type="submit" className="w-full">
             Filter
-          </button>
+          </LiquidButton>
         </div>
       </form>
 
@@ -132,7 +139,7 @@ export default function BillsList({ key: _key }: { key?: number }) {
                         <option value="OVERDUE">OVERDUE</option>
                         <option value="PARTIAL">PARTIAL</option>
                       </select>
-                      <button onClick={() => setShowDeleteModal(b.id!)} className="ml-2 text-red-500 hover:text-red-700"><Trash2 size={20}/></button>
+                      <button onClick={() => setShowDeleteModal(b.id!)} className="ml-2 cursor-pointer rounded-lg p-1 text-red-500 transition-colors hover:bg-red-500/10 hover:text-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40"><Trash2 size={20}/></button>
                     </div>
                   </td>
                 </tr>
@@ -148,8 +155,8 @@ export default function BillsList({ key: _key }: { key?: number }) {
             <h3 className="text-lg font-bold text-text-base">Delete Bill</h3>
             <p className="mt-2 text-sm text-text-muted">Are you sure you want to delete this bill? This action cannot be undone.</p>
             <div className="mt-6 flex justify-end space-x-4">
-              <button onClick={() => setShowDeleteModal(null)} className="px-4 py-2 rounded-lg text-sm font-medium bg-base-200 hover:bg-base-300">Cancel</button>
-              <button onClick={() => onDelete(showDeleteModal)} className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-500 hover:bg-red-600">Delete</button>
+              <Button variant="outline" onClick={() => setShowDeleteModal(null)}>Cancel</Button>
+              <LiquidButton variant="destructive" onClick={() => onDelete(showDeleteModal)}>Delete</LiquidButton>
             </div>
           </div>
         </div>

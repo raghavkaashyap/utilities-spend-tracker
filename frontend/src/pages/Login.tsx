@@ -3,6 +3,8 @@ import { login } from "../services/authService";
 import { Link } from "react-router-dom";
 import ThemeToggle from "../components/ThemeToggle";
 import { Eye, EyeOff } from "lucide-react";
+import { LiquidButton } from "../components/ui/liquid-glass-button";
+import { getErrorMessage } from "../lib/errors";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -16,8 +18,8 @@ export default function Login() {
     try {
       await login({ username, password });
       window.location.href = "/";
-    } catch (err: any) {
-      setError(err?.response?.data?.error ?? err?.message ?? "Login failed");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Login failed"));
     }
   };
 
@@ -77,7 +79,7 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 px-3 flex items-center text-text-muted"
+                  className="absolute inset-y-0 right-0 px-3 flex cursor-pointer items-center text-text-muted transition-colors hover:text-text-base focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                 >
                   {showPassword ? <EyeOff /> : <Eye />}
                 </button>
@@ -91,12 +93,12 @@ export default function Login() {
             )}
 
             <div>
-              <button
+              <LiquidButton
                 type="submit"
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                className="w-full"
               >
                 Sign in
-              </button>
+              </LiquidButton>
             </div>
           </form>
           <p className="mt-6 text-center text-sm text-text-muted">
